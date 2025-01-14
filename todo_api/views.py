@@ -5,9 +5,14 @@ from rest_framework import permissions
 from .models import Todo
 from .serializers import TodoSerializer
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from .permissions import IsOwner
+from rest_framework.permissions import IsAuthenticated
+
 
 class TodoListApiView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         """
@@ -49,15 +54,15 @@ class TodoDetailApiView(APIView):
                 {"error": "object with id donot exists"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        Serializer = TodoSerializer(todo_instance)
-        return Response(Serializer.data, status=status.HTTP_200_OK)
+        serializer = TodoSerializer(todo_instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, todo_id, *args, **kwargs):
         """Updates the todo item with given todo_id if exists"""
         todo_instance = self.get_object(todo_id, request.user.id)
         if not todo_instance:
             return Response(
-                {"error": "objects with the given data doesnot exists"},
+                {"error": "objects with the given data does not exists"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         data = {
@@ -81,5 +86,5 @@ class TodoDetailApiView(APIView):
             )
         todo_instance.delete()
         return Response(
-            {"ok":"data udyo"}, status=status.HTTP_410_GONE
+            {"ok":"Todo item deleted."}, status=status.HTTP_410_GONE
         )
